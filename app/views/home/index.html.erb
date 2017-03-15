@@ -1,0 +1,40 @@
+<script src="http://cdn.peerjs.com/0.3/peer.js"></script>
+<script>
+var peer = new Peer('<%= @peer_id %>', {host: 'socrates-peer.herokuapp.com', secure:true, port:443});
+
+var myStream;
+navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user" } }).then(function(stream) {
+  myStream = stream;
+  $('#my-video').prop('src', URL.createObjectURL(myStream));
+}).catch(function(err) {
+  console.log('Failed to get local stream' ,err);
+});
+
+<% if @call %>
+function call() {
+
+  var call = peer.call('<%= @recv_peer_id %>', myStream);
+  call.on('stream', function(remoteStream) {
+    $('#their-video').prop('src', URL.createObjectURL(remoteStream));
+  });
+}
+<% end %>
+
+<% if @answer %>
+peer.on('call', function(call) {
+  call.answer(myStream); // Answer the call with an A/V stream.
+  call.on('stream', function(remoteStream) {
+      $('#their-video').prop('src', URL.createObjectURL(remoteStream));
+  });
+});
+<% end %>
+</script>
+
+<!-- Video area -->
+<div class="pure-u-2-3" id="video-container">
+  <video id="their-video" autoplay></video>
+  <video id="my-video" muted="true" autoplay></video>
+</div>
+<% if @call %>
+<button id="make-call" onClick="call();">Call</button>
+<% end %>
