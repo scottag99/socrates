@@ -1,4 +1,4 @@
-<script src="https://cdn.peerjs.com/0.3/peer.js"></script>
+<%= javascript_include_tag 'peer.min.js', 'data-turbolinks-track': 'reload' %>
 <script>
 var peer = new Peer('<%= @peer_id %>', {host: 'socrates-peer.herokuapp.com', secure:true, port:443});
 
