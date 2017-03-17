@@ -1,7 +1,7 @@
 <%= javascript_include_tag 'peer.min.js', 'data-turbolinks-track': 'reload' %>
 <script>
 var peer = new Peer('<%= @peer_id %>', {host: 'socrates-peer.herokuapp.com', secure:true, port:443});
-
+var them = '<%= @recv_peer_id %>';
 var myStream;
 navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user" } }).then(function(stream) {
   myStream = stream;
@@ -12,9 +12,11 @@ navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user" }
 
 <% if @call %>
 function call() {
-
-  var call = peer.call('<%= @recv_peer_id %>', myStream);
+  console.log("Making call to " + them);
+  var call = peer.call(them, myStream);
+  console.log(call);
   call.on('stream', function(remoteStream) {
+    console.log('answering?');
     $('#their-video').prop('src', URL.createObjectURL(remoteStream));
   });
 }
@@ -22,17 +24,25 @@ function call() {
 
 <% if @answer %>
 peer.on('call', function(call) {
+  console.log(call);
+  console.log("getting a call!");
   call.answer(myStream); // Answer the call with an A/V stream.
+  console.log("answered")
   call.on('stream', function(remoteStream) {
-      $('#their-video').prop('src', URL.createObjectURL(remoteStream));
+    console.log("Getting their stream");
+    $('#their-video').prop('src', URL.createObjectURL(remoteStream));
   });
 });
 <% end %>
 </script>
 
 <!-- Video area -->
-<div class="pure-u-2-3" id="video-container">
+<div class="float: left; width: 50%;">
+  <h2><%= @recv_peer_id %>(remote)</h2>
   <video id="their-video" autoplay></video>
+</div>
+<div class="float: left;">
+  <h2><%= @peer_id %></h2>
   <video id="my-video" muted="true" autoplay></video>
 </div>
 <% if @call %>

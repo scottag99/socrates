@@ -1,0 +1,26 @@
+<%= javascript_include_tag 'peer.min.js', 'data-turbolinks-track': 'reload' %>
+<div class="video-container">
+  <video id="their-video" autoplay width="1280"></video>
+</div>
+<div class="my-video-container">
+  <video id="my-video" muted="true" autoplay width="160"></video>
+</div>
+
+<script>
+var peer = new Peer('<%= @peer_id %>', {host: 'socrates-peer.herokuapp.com', secure:true, port:443});
+var myStream;
+navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user", width: 1280 } }).then(function(stream) {
+  myStream = stream;
+  $('#my-video').prop('src', URL.createObjectURL(myStream));
+}).catch(function(err) {
+  console.log('Failed to get local stream' ,err);
+});
+
+
+peer.on('call', function(call) {
+  call.answer(myStream); // Answer the call with an A/V stream.
+  call.on('stream', function(remoteStream) {
+    $('#their-video').prop('src', URL.createObjectURL(remoteStream));
+  });
+});
+</script>

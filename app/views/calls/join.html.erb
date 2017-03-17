@@ -1,0 +1,40 @@
+
+<%= javascript_include_tag 'peer.min.js', 'data-turbolinks-track': 'reload' %>
+<div id="no-support">Not Supported</div>
+<div class="video-container">
+  <video id="their-video" autoplay width="1280"></video>
+</div>
+<div class="my-video-container">
+  <video id="my-video" muted="true" autoplay width="160"></video>
+</div>
+
+<script>
+var peer, myStream;
+function hasGetUserMedia() {
+  return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia || navigator.msGetUserMedia);
+}
+if (hasGetUserMedia()) {
+  peer = new Peer('<%= @peer_id %>', {host: 'socrates-peer.herokuapp.com', secure:true, port:443});
+  myStream;
+  navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user", width: 1280 } }).then(function(stream) {
+    myStream = stream;
+    $('#my-video').prop('src', URL.createObjectURL(myStream));
+
+    console.log("Making call to teacher");
+    var call = peer.call('teacher', myStream);
+    console.log(call);
+    call.on('stream', function(remoteStream) {
+      console.log('answering?');
+      $('#their-video').prop('src', URL.createObjectURL(remoteStream));
+    });
+  }).catch(function(err) {
+    console.log('Failed to get local stream' ,err);
+  });
+
+} else {
+  $('#no-support').show();
+  $('.video-container,.my-video-container').hide();
+}
+
+</script>
